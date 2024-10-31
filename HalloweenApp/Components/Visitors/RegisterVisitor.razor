@@ -1,0 +1,73 @@
+﻿@inject ProtectedLocalStorage ProtectedLocalStorage
+
+<div class="d-flex flex-column align-items-center"> 
+    @if(_visitor is null)
+    {
+        <h1> Register visitor</h1>
+        <input 
+            type="text" 
+            class="form-control"
+            @bind="_visitorName"
+            placeholder="Enter your name..."/>
+        <button
+            type="submit"
+            class="btn btn-primary"
+            @onclick="RegisterVisitorAsync"> Join!</button>
+
+        @if(!string.IsNullOrEmpty(_error))
+        {
+           <p class="text-danger">@_error</p>
+        }
+
+    }
+    else
+    {
+        <p>Join to event as: @_visitor.Name</p>
+        <button
+            type="submit"
+            class="btn btn-primary"
+            @onclick="RegisterExistingVisitorAsync"> Join!</button>
+    }
+
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback<Visitor> OnVisitorSet { get; set; }
+
+    [Parameter]
+    public List<Visitor> CurrentVisitors { get; set; } = new();
+
+
+    private string _visitorName = string.Empty;
+    private string _error = string.Empty;
+    private Visitor? _visitor;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var result = await ProtectedLocalStorage.GetAsync<Visitor>("visitor");
+
+        if (result.Success && result.Value != null)
+            _visitor = result.Value;
+    }
+
+    private async Task RegisterVisitorAsync()
+    {
+        if(CurrentVisitors.Any(x => x.Name == _visitorName))
+        {
+            _error = "The name already exists!";
+        }
+        else
+        {
+            var visitor = Visitor.Create(_visitorName);
+            await ProtectedLocalStorage.SetAsync("visitor", visitor);
+            await OnVisitorSet.InvokeAsync(visitor);
+        }
+    }
+
+    private async Task RegisterExistingVisitorAsync()
+    {
+        await OnVisitorSet.InvokeAsync(_visitor);
+    }
+
+}

@@ -1,0 +1,77 @@
+﻿<div class="d-flex flex-column align-items-center">
+    @if(!_scoresSubmited)
+    {
+        <table class="table">
+            <thead>
+                <tr>
+                    <th> Name </th>
+                    <th> Scores </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var visitor in Visitors)
+                {
+                    <tr>
+                        <td> @visitor.Name</td>
+                        <td>
+                            <div class="d-flex align-items-center flex-column">
+                                <input type="range"
+                                       class="form-range"
+                                       min="0"
+                                       max="10"
+                                       value="@_selectedScores[visitor.Name]"
+                                       @oninput="(e) => _selectedScores[visitor.Name] = int.Parse(e.Value.ToString())" />
+                                <span>@_selectedScores[visitor.Name]</span>
+                            </div>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+        <div class="mb-3">
+            <button type="submit"
+                    class="btn btn-primary"
+                    @onclick="ScoreSubmitHandler">
+                Submit scores!
+            </button>
+        </div>
+    }
+    else
+    {
+        <div class="mb-5">
+            <Spinner Type="SpinnerType.Dots" Size="SpinnerSize.Large" Color="SpinnerColor.Secondary" />
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter]
+    public List<Visitor> Visitors { get; set; } = new();
+
+    [Parameter]
+    public HubConnection? HubConnection { get; set; }
+
+    [Parameter]
+    public string EventId { get; set; } = string.Empty;
+
+    [Parameter]
+    public EventCallback<List<Visitor>> OnScoresSubmit { get; set; }
+
+    private Dictionary<string, int> _selectedScores = new();
+    private bool _scoresSubmited = false;
+
+    protected override void OnInitialized()
+    {
+        foreach (var visitor in Visitors)
+        {
+            _selectedScores[visitor.Name] = 0;
+        }
+    }
+
+    private async Task ScoreSubmitHandler()
+    {
+        _scoresSubmited = true;
+        await HubConnection.SendAsync("AddVisitorPoints", EventId, _selectedScores);
+    }
+
+}

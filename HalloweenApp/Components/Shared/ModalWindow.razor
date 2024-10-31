@@ -1,0 +1,22 @@
+﻿<Modal @ref="modal" Title="Modal title">
+    <BodyTemplate>
+        @ChildContent
+    </BodyTemplate>
+</Modal>
+
+@code {
+    [Parameter]
+    public RenderFragment? ChildContent { get; set; }
+
+    private Modal modal = default!;
+
+    public async Task ShowModalAsync()
+    {
+        await modal.ShowAsync();
+    }
+
+    public async Task HideModalAsync()
+    {
+        await modal.HideAsync();
+    }
+}

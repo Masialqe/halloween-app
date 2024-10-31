@@ -1,0 +1,25 @@
+﻿<Toasts 
+    class="p-3" 
+    Messages="messages" 
+    AutoHide="true" 
+    Delay="3000" 
+    Placement="ToastsPlacement.TopRight" />
+
+@code {
+    private List<ToastMessage> messages = new ();
+
+    public async Task ShowMessageAsync(ToastType toastType, string message) 
+    {
+        messages.Add(CreateToastMessage(toastType, message));
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private ToastMessage CreateToastMessage(ToastType toastType, string message)
+    => new ToastMessage
+        {
+            Type = toastType,
+            Title = toastType.ToString(),
+            HelpText = $"{DateTime.Now}",
+            Message = message,
+        };
+}

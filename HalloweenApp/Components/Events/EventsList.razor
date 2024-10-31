@@ -1,0 +1,36 @@
+﻿@inject LoadEventsHandler LoadEventsHandler
+
+<div class="d-flex justify-content-center align-content-center flex-wrap">
+    @if(_events.Count > 0)
+    {
+        @foreach(var env in _events)
+        {
+            <div class="p-2">
+                <EventCard @key="env" Event="@env" />
+            </div>
+        }
+    }
+    else
+    {
+        <div class="text-center">
+            <Spinner Type="SpinnerType.Border" />
+            <p> No events to display...</p>
+        </div>
+    }
+</div>
+
+@code {
+    private List<Event> _events = new();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await RefreshList();
+    }
+
+    public async Task RefreshList()
+    {
+        _events = await LoadEventsHandler.ExecuteAsync();
+        StateHasChanged();
+    }
+
+}

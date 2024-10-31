@@ -1,0 +1,168 @@
+﻿@page "/event/{id}"
+@rendermode InteractiveServer
+@inject NavigationManager NavigationManager
+@implements IAsyncDisposable
+
+<div class="container-fluid shadow h-100">
+    @if (_visitor != null)
+    {
+        <div class="d-flex flex-column align-items-center h-100">
+            <div class="flex-grow-0 d-flex flex-column align-items-center w-100">
+                <h1>"@_event.Name"</h1>
+                <p> <i>@_event.Description</i></p>
+            </div>
+            <div class="flex-grow-1 d-flex flex-column w-100">
+                @if (!_event.HasStarted)
+                {
+                    <VisitorsList Visitors="_event.Visitors" />
+                }
+
+                @if (_event.HasStarted && !_event.HasEnded)
+                {
+                    <EventVoteBoard Visitors="_event.Visitors"
+                                    HubConnection="_hubConnection"
+                                    EventId="@Id" />
+                }
+
+                @if (_event.HasEnded)
+                {
+                    <EventScoreBoard EventId="@Id"
+                                     HubConnection="_hubConnection" />
+                }
+            </div>
+            <div class="flex-grow-0 d-flex flex-column w-100">
+              
+                <EventAdminPanel OnEventStarts="HandleEventStart"
+                                 OnEventResets="HandleEventRestart"
+                                 OnEventEnds="HandleEventEnd"
+                                 IsAdminActive="IsVisitorAdmin()"/>
+            </div>
+        </div>
+    }
+</div>
+
+<ModalWindow @ref="modalWindow">
+    <RegisterVisitor 
+        OnVisitorSet="HandleVisitorSet" 
+        CurrentVisitors="_event.Visitors" />
+</ModalWindow>
+
+@code {
+    [Parameter]
+    public string Id { get; set; } = string.Empty;
+
+
+    private HubConnection? _hubConnection;
+    private Event _event = Event.CreateDefault();
+    private Visitor? _visitor;
+    private ModalWindow modalWindow = default!;
+
+    protected override async Task OnInitializedAsync()
+    {
+        var eventSynchronized = new TaskCompletionSource();
+
+        _hubConnection = new HubConnectionBuilder()
+                        .WithUrl(NavigationManager.ToAbsoluteUri("/eventHub"))
+                        .Build();
+
+        _hubConnection.On<Event>("SetEventState", (eventState) =>
+        {
+            _event = eventState.Copy();
+            eventSynchronized.TrySetResult();
+            InvokeAsync(StateHasChanged);
+        });
+
+        _hubConnection.On<Visitor>("UpdateVisitors", (visitor) =>
+        {
+            _event.AddVisitor(visitor);
+            InvokeAsync(StateHasChanged);
+        });
+
+        _hubConnection.On("EventStateStart", () =>
+        {
+            _event.StartEvent();
+            InvokeAsync(StateHasChanged);
+        });
+
+        _hubConnection.On("EventStateReset", () =>
+        {
+            _event.ResetEvent();
+            InvokeAsync(StateHasChanged);
+        });
+
+        _hubConnection.On("EventStateEnd", () =>
+        {
+            _event.EndEvent();
+            InvokeAsync(StateHasChanged);
+        });
+
+        await _hubConnection.StartAsync();
+
+        await _hubConnection.SendAsync("TrackEvent", Id);
+
+        await eventSynchronized.Task;
+
+        if (_visitor is null && modalWindow != null)
+        {
+            await modalWindow.ShowModalAsync();
+        }
+    }
+
+    private async Task HandleVisitorSet(Visitor visitor)
+    {
+        if(_event.HasStarted)
+        {
+            var isVisitorOnList = _event.Visitors.Any(x => x.Name == visitor.Name);
+
+            if(!isVisitorOnList)
+            {
+                NavigationManager.NavigateTo("/");
+                return;
+            }
+
+        }
+
+        if(visitor != null)
+            _visitor = visitor;
+
+        await modalWindow.HideModalAsync();
+
+        if(!_event.Visitors.Any(x => x.Name == visitor.Name))
+        {
+            _event.AddVisitor(visitor);
+            await _hubConnection.SendAsync("AddVisitor", Id, _visitor);
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private bool IsVisitorAdmin()
+        => _visitor.Name.Contains('#');
+
+    private async Task HandleEventStart()
+    {
+        if (_event != null) _event.StartEvent();
+        await _hubConnection.SendAsync("StartEvent", Id);
+    }
+
+    private async Task HandleEventRestart()
+    {
+        if (_event != null) _event.ResetEvent();
+        await _hubConnection.SendAsync("ResetEvent", Id);
+    }
+
+    private async Task HandleEventEnd()
+    {
+        if (_event != null) _event.EndEvent();
+        await _hubConnection.SendAsync("EndEvent", Id);
+    }
+
+
+
+    public async ValueTask DisposeAsync()
+    {
+        if(_hubConnection is not null)
+        {
+            await _hubConnection.DisposeAsync();
+        }
+    }
+}

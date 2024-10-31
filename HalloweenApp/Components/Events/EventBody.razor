@@ -1,0 +1,29 @@
+﻿@if(Event != null)
+{
+    @if(!Event.HasStarted)
+    {
+        @foreach (var visitor in Event.Visitors)
+        {
+            <p>Visitors: </p>
+            <p> - @visitor.Name</p>
+        }
+    }
+
+    @if(Event.HasStarted)
+    {
+        <EventVoteBoard/>
+    }
+
+    @if(Event.HasEnded)
+    {
+        <EventScoreBoard/>
+    }
+}
+
+
+
+@code {
+    [Parameter]
+    public Event? Event { get; set; }
+
+}

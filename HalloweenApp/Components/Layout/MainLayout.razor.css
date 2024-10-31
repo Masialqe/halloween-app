@@ -1,0 +1,32 @@
+html, body {
+	height: 100%;
+	margin: 0;
+}
+.main-container {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+	min-height: 100vh;
+}
+
+main {
+	flex: 1;
+	display: flex;
+	padding: 30px 20px 30px 20px;
+}
+
+.main-article {
+	position: relative;
+	flex: 1;
+}
+
+.nav-bar {
+	background-color: #B8E6F3;
+}
+.footer {
+	background-color: #B8E6F3;
+	padding: 20px 0;
+	text-align: center;
+	width: 100%;
+	margin-top: auto;
+}

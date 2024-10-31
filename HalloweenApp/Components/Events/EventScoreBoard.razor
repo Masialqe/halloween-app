@@ -1,0 +1,77 @@
+﻿@inject NavigationManager NavigationManager
+
+
+@if(_visitorsArray != null && !_isLoadingResults)
+{
+    <div class="d-flex flex-column align-items-center">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th> Name </th>
+                    <th> Score </th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var visitor in _visitorsArray)
+                {
+                    <tr>
+                        <td>@visitor.Name</td>
+                        <td>@visitor.GetScore()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+}
+else
+{
+    <Progress Class="mb-3">
+        <ProgressBar Type="ProgressType.Striped" Color="ProgressColor.Warning" Width="@_progressBarWidth" />
+    </Progress>
+}
+
+
+@code {
+    [Parameter]
+    public string EventId { get; set; } = string.Empty;
+
+    [Parameter]
+    public HubConnection? HubConnection { get; set; }
+
+
+    private Visitor[]? _visitorsArray;
+    private bool _isLoadingResults = true;
+    private int _progressBarWidth = 0;
+
+    protected override async void OnInitialized()
+    {
+        if (HubConnection == null) return;
+
+        HubConnection.On<Visitor[]>("SetVisitorsWithScore", (visitorArray) =>
+        {
+            _visitorsArray = visitorArray;
+            //TODO change to custom sorting
+            Array.Sort(_visitorsArray, (v1, v2) => v2.GetScore().CompareTo(v1.GetScore()));
+            InvokeAsync(StateHasChanged);
+        }); 
+
+        await HubConnection.SendAsync("GetVisitorsScore", EventId);
+
+        await ShowLoadingScreen();
+
+    }
+
+    private async Task ShowLoadingScreen()
+    {
+        for(int i = 0; i < 20; i++)
+        {
+            _progressBarWidth += 5;
+            await Task.Delay(250);
+            await InvokeAsync(StateHasChanged);
+        }
+
+        _isLoadingResults = false;
+        await InvokeAsync(StateHasChanged);
+    }
+
+}

@@ -1,0 +1,24 @@
+﻿@inject NavigationManager NavigationManager
+
+@if(Event is not null)
+{
+    <div class="card" style="width: 18rem;">
+        <div class="card-body">
+            <h5 class="card-title">@Event.Name</h5>
+            <h6 class="card-subtitle mb-2 text-body-secondary">@Event.Visitors.Count</h6>
+            <p class="card-text">@Event.Description.</p>
+            <button type="button" class="btn btn-primary" @onclick="() => MoveToEventView()"> Join! </button>
+        </div>
+    </div>
+}
+
+@code {
+    [Parameter]
+    public Event? Event { get; set; }
+
+    private void MoveToEventView()
+    {
+        if(Event is not null)
+            NavigationManager.NavigateTo($"/event/{Event.Id}");
+    }
+}

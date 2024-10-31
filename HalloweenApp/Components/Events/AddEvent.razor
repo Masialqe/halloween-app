@@ -1,0 +1,49 @@
+﻿@inject AddEventHandler AddEventHandler
+
+<EditForm Model="@_event" FormName="AddEventForm" OnValidSubmit="HandleFormSubmit">
+    <DataAnnotationsValidator/>
+    <div class="mb-3">
+        <InputText
+            class="form-control"
+            @bind-Value="@_event.Name"
+            placeholder="Enter event name..."
+        />
+        <ValidationMessage For="@(() => _event.Name)" />
+    </div>
+    <div class="mb-3">
+        <InputText class="form-control"
+                   @bind-Value="@_event.Description"
+                   placeholder="Enter event description..." 
+        />
+        <ValidationMessage For="@(() => _event.Description)" />
+    </div>
+    <div class="mb-3 d-flex justify-content-center">
+        <button type="submit"
+                class="btn btn-primary">
+            + Add
+        </button>
+    </div>
+</EditForm>
+<ToolTip @ref="@_toolTip"/>
+
+@code {
+    [Parameter]
+    public EventCallback OnEventCreated { get; set; }
+
+
+    private AddEventRequest _event = new();
+    private ToolTip? _toolTip;
+
+    private async Task HandleFormSubmit()
+    {
+        await AddEventHandler.ExecuteAsync(_event);
+        await OnEventCreated.InvokeAsync();
+        await _toolTip?.ShowMessageAsync(ToastType.Success, "Event has ben added!")!;
+        ClearnForm();
+    }
+
+    private void ClearnForm()
+    {
+        _event = new();
+    }
+}

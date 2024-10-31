@@ -1,0 +1,61 @@
+﻿@page "/counter"
+@rendermode InteractiveServer
+@inject NavigationManager Navigation
+@implements IAsyncDisposable
+
+@using HalloweenApp.Sample
+@using Microsoft.AspNetCore.SignalR.Client;
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p role="status">Current count: @counterInfo.CounterValue</p>
+
+<p role="status">Current negative count: @counterInfo.CounterValueNegative</p>
+
+<button class="btn btn-primary" @onclick="IncrementCount">Click me</button>
+
+
+@code {
+    private CounterInfo counterInfo = new();
+    private HubConnection? hubConnection;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        hubConnection = new HubConnectionBuilder()
+            .WithUrl(Navigation.ToAbsoluteUri("/clickerHub"))
+            .Build();
+
+        // Define the method to handle updates from the hub
+        hubConnection.On<CounterInfo>("UpdateCount", (count) =>
+        {
+            counterInfo = count;
+            InvokeAsync(StateHasChanged);
+        });
+
+        await hubConnection.StartAsync();
+
+        await hubConnection.SendAsync("GetCurrentCount");
+        await hubConnection.SendAsync("GetCurrentEvent");
+    }
+
+    private async Task IncrementCount()
+    {
+        if (hubConnection is not null)
+        {
+            counterInfo.CounterValue++;
+            //await hubConnection.SendAsync("Increment");
+        }
+    }
+
+
+    public async ValueTask DisposeAsync()
+    {
+        if (hubConnection is not null)
+        {
+            await hubConnection.DisposeAsync();
+        }
+    }
+}

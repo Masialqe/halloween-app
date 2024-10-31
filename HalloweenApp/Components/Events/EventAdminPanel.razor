@@ -1,0 +1,72 @@
+﻿<div class="d-flex flex-column justify-content-center align-items-center m-2">
+    <button class="btn custom-btn mb-2 w-50"
+            style="background-color: #DE871D;"
+        disabled="@isStartDisabled"
+        @onclick="async () => await HandleStartEventClick()"> Start Event 
+    </button>
+    <button class="btn custom-btn mb-2 w-50"
+            style="background-color: #DE871D;"
+        disabled="@isResetDisabled"
+            @onclick="async () => await HandleResetEventClick()">
+        Reset Event
+    </button>
+    <button class="btn custom-btn mb-2 w-50"
+            style="background-color: #DE871D;"
+        disabled="@isEndDisabled"
+        @onclick="async () => await HandleEndEventClick()">
+        End Event
+    </button>
+</div>
+
+@code {
+    [Parameter]
+    public EventCallback OnEventStarts { get; set;}
+
+    [Parameter]
+    public EventCallback OnEventResets { get; set; }
+
+    [Parameter]
+    public EventCallback OnEventEnds { get; set; }
+
+    [Parameter]
+    public bool IsAdminActive { get; set; } = false;
+
+    private bool isStartDisabled = false;
+    private bool isEndDisabled = true;
+    private bool isResetDisabled = true;
+
+    protected override void OnInitialized()
+    {
+        if (!IsAdminActive)
+            UpdateButtonStates(true, true, true);
+    }
+
+    private void UpdateButtonStates(
+    bool startDisabled, 
+        bool resetDisabled, 
+        bool endDisabled)
+    {
+        isStartDisabled = startDisabled;
+        isResetDisabled = resetDisabled;
+        isEndDisabled = endDisabled;
+    }
+
+    private async Task HandleStartEventClick()
+    {
+        await OnEventStarts.InvokeAsync();
+        UpdateButtonStates(true, false, false);
+    }
+
+    private async Task HandleResetEventClick()
+    {
+        await OnEventResets.InvokeAsync();
+        UpdateButtonStates(false, true, true);
+    }
+
+    private async Task HandleEndEventClick()
+    {
+        await OnEventEnds.InvokeAsync();
+        UpdateButtonStates(true, true, true);
+    }
+
+}

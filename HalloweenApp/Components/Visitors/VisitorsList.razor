@@ -1,0 +1,15 @@
+﻿<div class="d-flex flex-column">
+    <p>Registered visitors: </p>
+    <ol type="1">
+        @foreach (var visitor in Visitors)
+        {
+            <li>@visitor.Name</li>
+        }
+    </ol>
+</div>
+
+@code {
+    [Parameter]
+    public List<Visitor> Visitors { get; set; } = new();
+
+}
