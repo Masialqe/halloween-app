@@ -10,6 +10,7 @@
             get => _points;
             set => _points = value;
         }
+        public bool HasVoted { get; set; } = false;
 
         private int _points;
         private List<int> _gainedPoints;

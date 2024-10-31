@@ -1,3 +1,7 @@
+:root {
+	--layout-bar-colos: #DE871D;
+}
+
 html, body {
 	height: 100%;
 	margin: 0;
@@ -19,9 +23,7 @@ main {
 	position: relative;
 	flex: 1;
 }
-
 .nav-bar {
-	background-color: #B8E6F3;
 }
 .footer {
 	background-color: #B8E6F3;

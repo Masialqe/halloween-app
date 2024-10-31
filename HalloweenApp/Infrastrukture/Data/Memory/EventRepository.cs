@@ -77,5 +77,11 @@ namespace HalloweenApp.Infrastrukture.Data.Memory
 
             return Task.CompletedTask;
         }
+
+        public Task RemoveAllEventsAsync()
+        {
+            _events.Clear();
+            return Task.CompletedTask;
+        }
     }
 }
