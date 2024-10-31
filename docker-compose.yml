@@ -1,0 +1,5 @@
+services:
+  halloween-app:
+    build: .
+    ports:
+      - "80:8080"
