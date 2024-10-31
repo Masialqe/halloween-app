@@ -95,6 +95,9 @@ namespace HalloweenApp.Domain.Events
     {
         public static Event Copy(this Event eventToCopy)
         {
+            if(eventToCopy == null)
+                throw new ArgumentNullException(nameof(eventToCopy));
+
             var newEvent = Event.Create(eventToCopy.Name, eventToCopy.Description);
             foreach (var visitor in eventToCopy.Visitors)
             {

@@ -1,11 +1,13 @@
-﻿<div class="d-flex flex-column align-items-center">
-    @if(!_scoresSubmited)
+﻿@inject ProtectedLocalStorage ProtectedLocalStorage
+
+<div class="d-flex flex-column align-items-center">
+    @if (!_scoresSubmited && !CurrentVisitor.HasVoted)
     {
         <table class="table">
             <thead>
                 <tr>
-                    <th> Name </th>
-                    <th> Scores </th>
+                    <th> Imię </th>
+                    <th> Punkty </th>
                 </tr>
             </thead>
             <tbody>
@@ -32,7 +34,7 @@
             <button type="submit"
                     class="btn btn-primary"
                     @onclick="ScoreSubmitHandler">
-                Submit scores!
+                Zagłosuj!
             </button>
         </div>
     }
@@ -57,10 +59,13 @@
     [Parameter]
     public EventCallback<List<Visitor>> OnScoresSubmit { get; set; }
 
+    [Parameter]
+    public Visitor CurrentVisitor { get; set; } = default!;
+
     private Dictionary<string, int> _selectedScores = new();
     private bool _scoresSubmited = false;
 
-    protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
     {
         foreach (var visitor in Visitors)
         {
@@ -71,7 +76,13 @@
     private async Task ScoreSubmitHandler()
     {
         _scoresSubmited = true;
+        await UpdateCurrentVisitorsState();
         await HubConnection.SendAsync("AddVisitorPoints", EventId, _selectedScores);
     }
 
+    private async Task UpdateCurrentVisitorsState()
+    {
+        CurrentVisitor.HasVoted = true;
+        await ProtectedLocalStorage.SetAsync("visitor", CurrentVisitor);
+    }
 }

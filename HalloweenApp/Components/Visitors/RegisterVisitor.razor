@@ -3,16 +3,18 @@
 <div class="d-flex flex-column align-items-center"> 
     @if(_visitor is null)
     {
-        <h1> Register visitor</h1>
+        <h1> Zarejestruj gracza </h1>
         <input 
             type="text" 
             class="form-control"
             @bind="_visitorName"
-            placeholder="Enter your name..."/>
+            placeholder="Wpisz swoje imię..."/>
         <button
             type="submit"
             class="btn btn-primary"
-            @onclick="RegisterVisitorAsync"> Join!</button>
+                @onclick="RegisterVisitorAsync">
+            Dołącz!
+        </button>
 
         @if(!string.IsNullOrEmpty(_error))
         {
@@ -22,11 +24,11 @@
     }
     else
     {
-        <p>Join to event as: @_visitor.Name</p>
+        <p>Dołączasz do wydarzenia jako: @_visitor.Name</p>
         <button
             type="submit"
             class="btn btn-primary"
-            @onclick="RegisterExistingVisitorAsync"> Join!</button>
+            @onclick="RegisterExistingVisitorAsync"> Dołącz! </button>
     }
 
 </div>

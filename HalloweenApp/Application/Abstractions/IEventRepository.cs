@@ -29,6 +29,7 @@ namespace HalloweenApp.Application.Abstractions
             Guid eventId);
         Task AddVoteToEventAsync(
             Guid eventId);
+        Task RemoveAllEventsAsync();
 
 
     }

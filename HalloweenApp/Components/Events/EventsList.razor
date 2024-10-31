@@ -1,4 +1,6 @@
 ﻿@inject LoadEventsHandler LoadEventsHandler
+@inject ResetEventsListHandler ResetEventsListHandler
+@inject ProtectedLocalStorage ProtectedLocalStorage
 
 <div class="d-flex justify-content-center align-content-center flex-wrap">
     @if(_events.Count > 0)
@@ -8,29 +10,59 @@
             <div class="p-2">
                 <EventCard @key="env" Event="@env" />
             </div>
+            
         }
     }
     else
     {
         <div class="text-center">
             <Spinner Type="SpinnerType.Border" />
-            <p> No events to display...</p>
+            <p> Brak zarejestrowanych wydarzeń...</p>
         </div>
     }
 </div>
 
+@if(_events.Count > 0 && _isVisitorAdmin)
+{
+    <div class="d-flex flex-column align-items-center">
+        <button 
+            type="button" 
+            class="btn btn-danger"
+            @onclick="ResetEventsClickHandler"> Reset events </button>
+    </div>
+}
+
 @code {
     private List<Event> _events = new();
+    private bool _isVisitorAdmin = false;
 
     protected override async Task OnInitializedAsync()
     {
         await RefreshList();
+
+        _isVisitorAdmin = await IsVisitorAdmin();
     }
 
     public async Task RefreshList()
     {
         _events = await LoadEventsHandler.ExecuteAsync();
         StateHasChanged();
+    }
+
+    public async Task ResetEventsClickHandler()
+    {
+        await ResetEventsListHandler.ExecuteAsync();
+        _events.Clear();
+    }
+
+    public async Task<bool> IsVisitorAdmin()
+    {
+        var visitor = await ProtectedLocalStorage.GetAsync<Visitor>("visitor");
+
+        if (visitor.Value == null)
+            return false;
+
+        return visitor.Value.Name.Contains('#');
     }
 
 }

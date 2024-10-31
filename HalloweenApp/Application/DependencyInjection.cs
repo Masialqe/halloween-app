@@ -9,6 +9,7 @@ namespace HalloweenApp.Application
         {
             services.AddScoped<AddEventHandler>();
             services.AddScoped<LoadEventsHandler>();
+            services.AddScoped<ResetEventsListHandler>();
 
             return services;
         }

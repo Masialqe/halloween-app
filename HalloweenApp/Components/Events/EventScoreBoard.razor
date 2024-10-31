@@ -1,5 +1,5 @@
 ﻿@inject NavigationManager NavigationManager
-
+@inject ProtectedLocalStorage ProtectedLocalStorage
 
 @if(_visitorsArray != null && !_isLoadingResults)
 {
@@ -7,8 +7,8 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th> Name </th>
-                    <th> Score </th>
+                    <th> Imię </th>
+                    <th> Wynik </th>
                 </tr>
             </thead>
             <tbody>
@@ -37,6 +37,9 @@ else
 
     [Parameter]
     public HubConnection? HubConnection { get; set; }
+
+    [Parameter]
+    public Visitor CurrentVisitor { get; set; } = default!;
 
 
     private Visitor[]? _visitorsArray;
@@ -71,7 +74,14 @@ else
         }
 
         _isLoadingResults = false;
+        await UpdateCurrentVisitorsState();
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UpdateCurrentVisitorsState()
+    {
+        CurrentVisitor.HasVoted = false;
+        await ProtectedLocalStorage.SetAsync("visitor", CurrentVisitor);
     }
 
 }
